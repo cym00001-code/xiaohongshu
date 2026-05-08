@@ -75,7 +75,7 @@ class JustOneClient:
         data = self._request_json("GET", "/api/xiaohongshu/search-note/v2", params=_drop_none(payload))
         items = _pick_list(data, "notes", "items", "list", "data")
         return ProviderSearchPage(
-            notes=[_map_note(item, provider=self.name) for item in items[:limit] if isinstance(item, Mapping)],
+            notes=_map_notes(items, provider=self.name, limit=limit),
             next_cursor=_pick_str(data, "next_cursor", "nextCursor", "lastCursor", "cursor", "next"),
             has_more=bool(_pick(data, "has_more", "hasMore", "has_next", "hasNext") or False),
             raw=data,
@@ -246,6 +246,20 @@ def _map_note(item: Mapping[str, Any], *, provider: str, fallback_note_id: str |
     )
 
 
+def _map_notes(items: list[Any], *, provider: str, limit: int | None = None) -> list[ProviderNote]:
+    notes: list[ProviderNote] = []
+    for item in items:
+        if not isinstance(item, Mapping):
+            continue
+        try:
+            notes.append(_map_note(item, provider=provider))
+        except ProviderRequestError:
+            continue
+        if limit is not None and len(notes) >= limit:
+            break
+    return notes
+
+
 def _map_comment(item: Mapping[str, Any], *, provider: str, fallback_note_id: str) -> ProviderComment:
     author = _pick_mapping(item, "author", "user", "user_info", "userInfo") or {}
     comment_id = _pick_str(item, "comment_id", "commentId", "id")
@@ -325,7 +339,7 @@ def normalize_search_response(payload: Mapping[str, Any]) -> list[dict[str, Any]
     """Normalize a Just One search payload into simple public note dictionaries."""
 
     items = _pick_list(payload, "notes", "items", "list", "data")
-    notes = [_map_note(item, provider="justone") for item in items if isinstance(item, Mapping)]
+    notes = _map_notes(items, provider="justone")
     return [
         {
             "id": note.note_id,
