@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
+import re
 from time import sleep
 from typing import Any
 
@@ -175,7 +176,8 @@ def _response_message(response: httpx.Response) -> str:
     retry_note = ""
     if retry_after:
         retry_note = f"; retry after {_format_retry_after(retry_after)}"
-    return f"Just One API {response.status_code} for {response.request.method} {response.request.url}{retry_note}"
+    safe_url = re.sub(r"([?&]token=)[^&]+", r"\1***redacted***", str(response.request.url))
+    return f"Just One API {response.status_code} for {response.request.method} {safe_url}{retry_note}"
 
 
 def _format_retry_after(value: str) -> str:

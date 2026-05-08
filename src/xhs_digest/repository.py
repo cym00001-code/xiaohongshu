@@ -25,11 +25,18 @@ class DigestRepository:
 
     def __init__(self, session: Session) -> None:
         self.session = session
+        self._tag_cache: dict[str, Tag] = {}
 
     def upsert_tag(self, name: str, *, category: str | None = None) -> Tag:
         clean_name = name.strip()
         if not clean_name:
             raise ValueError("tag name cannot be empty")
+
+        cached = self._tag_cache.get(clean_name)
+        if cached is not None:
+            if category is not None:
+                cached.category = category
+            return cached
 
         tag = self.session.scalar(select(Tag).where(Tag.name == clean_name))
         if tag is None:
@@ -37,6 +44,7 @@ class DigestRepository:
             self.session.add(tag)
         elif category is not None:
             tag.category = category
+        self._tag_cache[clean_name] = tag
         return tag
 
     def upsert_note(self, note: ProviderNote, *, tag_names: Sequence[str] = ()) -> Note:

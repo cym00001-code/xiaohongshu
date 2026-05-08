@@ -64,6 +64,7 @@ def run_daily_digest(
     from .repository import DigestRepository
     from .scoring import score_note
     from .summarizer import summarize_digest
+    from .providers.base import ProviderError
 
     engine, session_factory = create_engine_and_session(env.database_url)
     create_tables(engine)
@@ -140,7 +141,17 @@ def run_daily_digest(
                     external_id = str(note_data.get("note_id") or "")
                     if not external_id:
                         continue
-                    comment_page = provider.get_note_comments(external_id, limit=runtime.digest.comments_per_note)
+                    try:
+                        comment_page = provider.get_note_comments(external_id, limit=runtime.digest.comments_per_note)
+                    except ProviderError as exc:
+                        logger.warning("Skipping comments for note %s: %s", external_id, exc)
+                        repo.add_raw_api_event(
+                            provider=env.xhs_provider,
+                            endpoint="note_comments",
+                            request={"note_id": external_id, "limit": runtime.digest.comments_per_note},
+                            error=str(exc),
+                        )
+                        continue
                     repo.add_raw_api_event(
                         provider=env.xhs_provider,
                         endpoint="note_comments",
