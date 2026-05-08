@@ -160,7 +160,7 @@ class JustOneClient:
                 last_error = exc
                 if attempt >= self.max_retries:
                     raise ProviderRetryableError(str(exc)) from exc
-                sleep(min(2**attempt, 8) * 0.25)
+                sleep(min(2**attempt, 8))
             except ValueError as exc:
                 raise ProviderRequestError("Just One API returned invalid JSON") from exc
 

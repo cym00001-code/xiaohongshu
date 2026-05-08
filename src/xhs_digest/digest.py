@@ -84,7 +84,17 @@ def run_daily_digest(
                 seen_external_ids: set[str] = set()
                 per_tag_limit = max(1, tag.daily_limit or runtime.digest.default_notes_per_tag)
                 for term in tag.search_terms:
-                    page = provider.search_notes(keyword=term, limit=per_tag_limit)
+                    try:
+                        page = provider.search_notes(keyword=term, limit=per_tag_limit)
+                    except ProviderError as exc:
+                        logger.warning("Skipping keyword %s for tag %s: %s", term, tag.name, exc)
+                        repo.add_raw_api_event(
+                            provider=env.xhs_provider,
+                            endpoint="search_notes",
+                            request={"keyword": term, "limit": per_tag_limit},
+                            error=str(exc),
+                        )
+                        continue
                     repo.add_raw_api_event(
                         provider=env.xhs_provider,
                         endpoint="search_notes",
