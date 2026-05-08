@@ -1,0 +1,120 @@
+# Xiaohongshu Trend Digest
+
+Daily Xiaohongshu trend digest service for collecting topic-level note signals through provider interfaces, scoring trends, rendering a digest, and sending it by email.
+
+## Setup
+
+Requirements:
+
+- Python 3.11+
+- PostgreSQL 15+ for persisted runs
+- A supported Xiaohongshu data provider account
+- SMTP credentials for email delivery
+
+Create a local environment:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
+```
+
+Create local configuration:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Then edit `.env`, `settings.yaml`, and `tags.yaml` for the target environment. Do not commit `.env`, API tokens, SMTP passwords, cookies, exported user data, or raw provider payloads.
+
+## Environment Variables
+
+| Variable | Required | Description |
+| --- | --- | --- |
+| `DATABASE_URL` | Yes | SQLAlchemy/Postgres connection string. Local Docker uses `postgresql+psycopg://xhs_digest:xhs_digest@postgres:5432/xhs_digest`. |
+| `XHS_PROVIDER` | Yes | Provider name. The default planned provider is `justone`. |
+| `XHS_API_TOKEN` | Yes | Provider API token. Keep this secret. |
+| `XHS_API_BASE_URL` | Yes | Provider API base URL. |
+| `OPENAI_API_KEY` | Yes, when AI summarization is enabled | OpenAI-compatible API key for digest synthesis. |
+| `OPENAI_BASE_URL` | No | Optional OpenAI-compatible base URL override. |
+| `OPENAI_MODEL` | Yes, when AI summarization is enabled | Model name used for digest synthesis. |
+| `SMTP_HOST` | Yes | SMTP server hostname. |
+| `SMTP_PORT` | Yes | SMTP server port, commonly `587`. |
+| `SMTP_USER` | Yes | SMTP username. |
+| `SMTP_PASSWORD` | Yes | SMTP password or app password. Keep this secret. |
+| `SMTP_FROM` | Yes | Sender address used for digest email. |
+| `MAIL_TO` | Yes | Recipient address or comma-separated recipient list. |
+| `DIGEST_TIMEZONE` | Yes | IANA timezone for scheduling and date labels. |
+| `LOG_LEVEL` | No | Logging level, for example `INFO` or `DEBUG`. |
+
+Runtime behavior belongs in `settings.yaml`; topic and tag selection belongs in `tags.yaml`.
+
+## Commands
+
+Run tests:
+
+```powershell
+pytest
+```
+
+Run the public CLI once application modules are available:
+
+```powershell
+daily-digest --help
+```
+
+Build the container:
+
+```powershell
+docker build -t xhs-trend-digest .
+```
+
+Start local services:
+
+```powershell
+docker compose up --build
+```
+
+Stop local services:
+
+```powershell
+docker compose down
+```
+
+## Docker
+
+The `Dockerfile` installs the package and runs the public `daily-digest` entrypoint. The Compose stack includes:
+
+- `app`: digest service container
+- `postgres`: local PostgreSQL database
+
+Use `.env` for local Compose secrets. Keep deployment secrets in the cloud provider secret manager or runtime environment configuration.
+
+## Cloud Deployment
+
+Recommended deployment shape:
+
+1. Build the image from this repository.
+2. Push the image to the target registry.
+3. Provision a managed PostgreSQL database.
+4. Configure secrets as runtime environment variables.
+5. Mount or package `settings.yaml` and `tags.yaml`.
+6. Run the service on a schedule using the platform scheduler, a cron container, or the built-in scheduler once implemented.
+7. Send logs to the platform log collector and alert on failed digest runs.
+
+For a single-host deployment, use Docker Compose with a production `.env` file stored outside the repository. For managed platforms, map the environment variables above directly into the service configuration.
+
+## Sync Convention
+
+After every meaningful code or documentation change:
+
+1. Run the relevant tests.
+2. Commit a small, reviewable change with a clear message.
+3. Push `main` to `https://github.com/cym00001-code/xiaohongshu`.
+
+Do not sync secrets, Xiaohongshu session data, cookies, proxy credentials, or raw exported user datasets.
+
+## Provider Boundary
+
+Data collection should stay behind provider interfaces under `src/xhs_digest/providers/`. Do not add captcha bypass, account pools, proxy evasion, private-message collection, media downloaders, or other platform-circumvention code.
