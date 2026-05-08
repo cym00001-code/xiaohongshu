@@ -216,6 +216,10 @@ def _pick_str(data: Mapping[str, Any], *keys: str) -> str | None:
 
 
 def _map_note(item: Mapping[str, Any], *, provider: str, fallback_note_id: str | None = None) -> ProviderNote:
+    nested_note = _pick_mapping(item, "note", "note_card", "noteCard", "note_info", "noteInfo")
+    if nested_note is not None:
+        item = nested_note
+
     author = _pick_mapping(item, "author", "user", "user_info", "userInfo") or {}
     metrics = _pick_mapping(item, "metrics", "stats", "statistics", "interact_info", "interactInfo") or {}
     raw = dict(item)
@@ -235,7 +239,7 @@ def _map_note(item: Mapping[str, Any], *, provider: str, fallback_note_id: str |
         published_at=_parse_datetime(_pick(item, "published_at", "publishTime", "publish_time", "created_at", "time")),
         liked_count=_to_int(_pick(metrics, "liked_count", "likedCount", "likes", "like_count", "likeCount") or _pick(item, "liked_count", "likedCount")),
         collected_count=_to_int(_pick(metrics, "collected_count", "collectedCount", "collects", "collect_count", "collectCount") or _pick(item, "collected_count", "collectedCount")),
-        commented_count=_to_int(_pick(metrics, "commented_count", "commentedCount", "comments", "comment_count", "commentCount") or _pick(item, "commented_count", "commentedCount", "comment_count", "commentCount", "comments")),
+        commented_count=_to_int(_pick(metrics, "commented_count", "commentedCount", "comments", "comment_count", "commentCount", "comments_count", "commentsCount") or _pick(item, "commented_count", "commentedCount", "comment_count", "commentCount", "comments", "comments_count", "commentsCount")),
         shared_count=_to_int(_pick(metrics, "shared_count", "sharedCount", "shares", "share_count", "shareCount") or _pick(item, "shared_count", "sharedCount", "share_count", "shareCount", "shares")),
         tags=_map_tags(item),
         raw=raw,
