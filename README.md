@@ -98,6 +98,28 @@ Run the built-in daily scheduler:
 daily-digest schedule
 ```
 
+Run the AI Trend Galaxy API and bundled frontend:
+
+```powershell
+daily-digest serve --host 127.0.0.1 --port 8000
+```
+
+During frontend development, run the Vite app from `web/`:
+
+```powershell
+cd web
+npm install
+npm run dev -- --port 5173
+```
+
+Then open `http://127.0.0.1:5173`. The Vite dev server proxies `/api` to `http://127.0.0.1:8000`.
+
+Collect public AI trend signals from the enabled provider registry:
+
+```powershell
+daily-digest collect-trends --limit-per-entity 10 --window-hours 24
+```
+
 Build the container:
 
 ```powershell
@@ -152,3 +174,16 @@ Do not sync secrets, Xiaohongshu session data, cookies, proxy credentials, or ra
 ## Provider Boundary
 
 Data collection should stay behind provider interfaces under `src/xhs_digest/providers/`. Do not add captcha bypass, account pools, proxy evasion, private-message collection, media downloaders, or other platform-circumvention code.
+
+## AI Trend Galaxy
+
+The repository now includes a Chinese-first 3D trend visualization surface for AI topics:
+
+- Backend API: `src/xhs_digest/api.py`
+- Trend aggregation: `src/xhs_digest/trend_service.py`
+- Provider-neutral registry: `src/xhs_digest/providers/trend_sources.py`
+- Frontend app: `web/`
+
+The first screen is the usable visualization: a multi-galaxy AI trend map with global models, China AI products, frontier AI, and AI tooling. Node size represents heat, pulse represents growth, color represents sentiment, and orbit rings represent source platforms. Clicking a node opens trend details, heat breakdown, platform distribution, top signals, and a summary.
+
+The live refresh default is 30 minutes. The frontend polls the API and falls back to deterministic demo data when no provider credentials or stored notes are available.

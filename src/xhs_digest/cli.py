@@ -92,5 +92,38 @@ def schedule(
     run_scheduler(env, runtime, tags)
 
 
+@app.command("serve")
+def serve(
+    host: str = typer.Option("127.0.0.1", "--host", help="Web server host."),
+    port: int = typer.Option(8000, "--port", help="Web server port."),
+    reload: bool = typer.Option(False, "--reload", help="Reload the API server during local development."),
+) -> None:
+    """Run the AI Trend Galaxy API and bundled frontend."""
+    import uvicorn
+
+    uvicorn.run("xhs_digest.api:app", host=host, port=port, reload=reload)
+
+
+@app.command("collect-trends")
+def collect_trends(
+    limit_per_entity: int = typer.Option(10, "--limit-per-entity", min=1, max=50, help="Items per AI entity and provider."),
+    window_hours: int = typer.Option(24, "--window-hours", min=1, max=168, help="Collection time window."),
+) -> None:
+    """Collect public AI trend signals from enabled providers."""
+    from .providers.trend_sources import build_default_trend_registry
+    from .trend_collection import collect_trend_signals
+
+    env = load_env()
+    configure_logging(env.log_level)
+    registry = build_default_trend_registry(github_token=env.github_token)
+    count = collect_trend_signals(
+        database_url=env.database_url,
+        registry=registry,
+        limit_per_entity=limit_per_entity,
+        window_hours=window_hours,
+    )
+    console.print(f"[green]AI 趋势信号采集完成：[/green]{count} 条")
+
+
 if __name__ == "__main__":
     app()

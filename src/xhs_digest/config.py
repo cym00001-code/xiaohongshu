@@ -19,6 +19,13 @@ class EnvSettings(BaseSettings):
     openai_api_key: str | None = None
     openai_base_url: str | None = None
     openai_model: str = "gpt-4o-mini"
+    trend_refresh_minutes: int = 30
+    github_token: str | None = None
+    producthunt_token: str | None = None
+    reddit_client_id: str | None = None
+    reddit_client_secret: str | None = None
+    x_bearer_token: str | None = None
+    weibo_api_token: str | None = None
     smtp_host: str | None = None
     smtp_port: int = 587
     smtp_user: str | None = None

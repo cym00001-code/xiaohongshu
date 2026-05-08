@@ -4,10 +4,15 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+.tsbuildinfo
+*.tsbuildinfo
 .coverage
 htmlcov/
 .venv/
 venv/
+node_modules/
+web/node_modules/
+web/dist/
 dist/
 build/
 .env
@@ -17,4 +22,3 @@ build/
 *.db
 logs/
 tmp/
-
