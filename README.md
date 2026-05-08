@@ -52,6 +52,8 @@ Runtime behavior belongs in `settings.yaml`; topic and tag selection belongs in 
 
 The email always includes a `今日AI最热帖子` section. It is generated from all collected AI notes and sorted by the deterministic heat score. The default broad AI collection tag is `AI最热帖子`, and `digest.hot_posts_count` controls how many ranked posts are shown.
 
+For a server with local mail transfer available, set `SMTP_HOST=sendmail`, `SMTP_FROM=your-sender@example.com`, and `MAIL_TO=recipient@example.com`; SMTP username/password are then not required.
+
 ## Commands
 
 Run tests:

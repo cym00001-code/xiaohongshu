@@ -39,6 +39,19 @@ class EnvSettings(BaseSettings):
             raise ValueError("XHS_API_TOKEN is required when XHS_PROVIDER=justone.")
 
     def require_smtp_credentials(self) -> None:
+        if self.smtp_host and self.smtp_host.lower() == "sendmail":
+            missing = [
+                name
+                for name, value in {
+                    "SMTP_FROM": self.smtp_from,
+                    "MAIL_TO": self.mail_to,
+                }.items()
+                if not value
+            ]
+            if missing:
+                raise ValueError(f"Missing sendmail settings: {', '.join(missing)}")
+            return
+
         missing = [
             name
             for name, value in {

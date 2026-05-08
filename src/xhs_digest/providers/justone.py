@@ -65,18 +65,28 @@ class JustOneClient:
         cursor: str | None = None,
         limit: int = 20,
     ) -> ProviderSearchPage:
-        payload = {"keyword": keyword, "cursor": cursor, "limit": limit}
-        data = self._request_json("GET", "/xhs/notes/search", params=_drop_none(payload))
+        payload = {
+            "token": self.api_key,
+            "keyword": keyword,
+            "page": int(cursor or 1),
+            "sort": "popularity_descending",
+            "noteType": "_0",
+        }
+        data = self._request_json("GET", "/api/xiaohongshu/search-note/v2", params=_drop_none(payload))
         items = _pick_list(data, "notes", "items", "list", "data")
         return ProviderSearchPage(
-            notes=[_map_note(item, provider=self.name) for item in items if isinstance(item, Mapping)],
-            next_cursor=_pick_str(data, "next_cursor", "nextCursor", "cursor", "next"),
+            notes=[_map_note(item, provider=self.name) for item in items[:limit] if isinstance(item, Mapping)],
+            next_cursor=_pick_str(data, "next_cursor", "nextCursor", "lastCursor", "cursor", "next"),
             has_more=bool(_pick(data, "has_more", "hasMore", "has_next", "hasNext") or False),
             raw=data,
         )
 
     def get_note_detail(self, note_id: str) -> ProviderNote:
-        data = self._request_json("GET", f"/xhs/notes/{note_id}")
+        data = self._request_json(
+            "GET",
+            "/api/xiaohongshu/get-note-detail/v2",
+            params={"token": self.api_key, "noteId": note_id},
+        )
         item = _pick_mapping(data, "note", "item", "data") or data
         return _map_note(item, provider=self.name, fallback_note_id=note_id)
 
@@ -87,8 +97,8 @@ class JustOneClient:
         cursor: str | None = None,
         limit: int = 20,
     ) -> ProviderCommentPage:
-        payload = {"cursor": cursor, "limit": limit}
-        data = self._request_json("GET", f"/xhs/notes/{note_id}/comments", params=_drop_none(payload))
+        payload = {"token": self.api_key, "noteId": note_id, "lastCursor": cursor, "sort": "latest"}
+        data = self._request_json("GET", "/api/xiaohongshu/get-note-comment/v2", params=_drop_none(payload))
         items = _pick_list(data, "comments", "items", "list", "data")
         return ProviderCommentPage(
             comments=[
@@ -96,14 +106,14 @@ class JustOneClient:
                 for item in items
                 if isinstance(item, Mapping)
             ],
-            next_cursor=_pick_str(data, "next_cursor", "nextCursor", "cursor", "next"),
+            next_cursor=_pick_str(data, "next_cursor", "nextCursor", "lastCursor", "cursor", "next"),
             has_more=bool(_pick(data, "has_more", "hasMore", "has_next", "hasNext") or False),
             raw=data,
         )
 
     def suggest_keywords(self, keyword: str, *, limit: int = 10) -> list[SuggestedKeyword]:
-        payload = {"keyword": keyword, "limit": limit}
-        data = self._request_json("GET", "/xhs/keywords/suggest", params=payload)
+        payload = {"token": self.api_key, "keyword": keyword}
+        data = self._request_json("GET", "/api/xiaohongshu/search-recommend/v1", params=payload)
         items = _pick_list(data, "keywords", "suggestions", "items", "list", "data")
         suggestions: list[SuggestedKeyword] = []
         for item in items:
@@ -136,6 +146,12 @@ class JustOneClient:
                 data = response.json()
                 if not isinstance(data, dict):
                     raise ProviderRequestError("Just One API returned a non-object JSON response")
+                code = data.get("code")
+                if code not in (None, 0, "0"):
+                    message = data.get("message") or data.get("msg") or f"business code {code}"
+                    if code in (301, 302, 303, 500, "301", "302", "303", "500"):
+                        raise ProviderRetryableError(str(message))
+                    raise ProviderRequestError(str(message))
                 return data
             except ProviderRequestError:
                 raise

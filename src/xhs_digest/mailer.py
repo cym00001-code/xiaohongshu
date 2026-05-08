@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import smtplib
+import subprocess
 from dataclasses import dataclass
 from email.message import EmailMessage
 from typing import Iterable, Sequence
@@ -23,6 +24,7 @@ class SMTPConfig:
     use_tls: bool = True
     use_ssl: bool = False
     timeout_seconds: float = 20.0
+    sendmail_path: str = "/usr/sbin/sendmail"
 
     @classmethod
     def from_env(cls, prefix: str = "SMTP_") -> "SMTPConfig":
@@ -77,6 +79,10 @@ def send_email(
         raise ValueError("SMTP sender is required.")
 
     message = build_email_message(subject=subject, html=html, sender=sender, recipients=recipient_list, text=text)
+    if config.host.lower() == "sendmail":
+        _send_with_sendmail(config.sendmail_path, message, sender, recipient_list)
+        return
+
     smtp_cls = smtplib.SMTP_SSL if config.use_ssl else smtplib.SMTP
     with smtp_cls(config.host, config.port, timeout=config.timeout_seconds) as smtp:
         if config.use_tls and not config.use_ssl:
@@ -117,3 +123,8 @@ def _env_bool(name: str, default: bool) -> bool:
 
 def _html_to_text(html: str) -> str:
     return " ".join(html.replace("<", " <").replace(">", "> ").split())
+
+
+def _send_with_sendmail(path: str, message: EmailMessage, sender: str, recipients: Sequence[str]) -> None:
+    command = [path, "-f", sender, *recipients]
+    subprocess.run(command, input=message.as_bytes(), check=True)
