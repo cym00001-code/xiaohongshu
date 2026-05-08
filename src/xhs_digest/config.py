@@ -31,6 +31,9 @@ class EnvSettings(BaseSettings):
     smtp_user: str | None = None
     smtp_password: str | None = None
     smtp_from: str | None = None
+    smtp_use_tls: bool = True
+    smtp_use_ssl: bool = False
+    smtp_timeout_seconds: float = 20.0
     mail_to: str | None = None
     digest_timezone: str = "Asia/Shanghai"
     log_level: str = "INFO"

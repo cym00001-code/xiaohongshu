@@ -107,6 +107,9 @@ class SmtpMailer:
                 username=env.smtp_user,
                 password=env.smtp_password,
                 sender=env.smtp_from,
+                use_tls=env.smtp_use_tls,
+                use_ssl=env.smtp_use_ssl,
+                timeout_seconds=env.smtp_timeout_seconds,
             )
         )
 

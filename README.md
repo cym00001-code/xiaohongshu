@@ -44,6 +44,8 @@ Then edit `.env`, `settings.yaml`, and `tags.yaml` for the target environment. D
 | `SMTP_USER` | Yes | SMTP username. |
 | `SMTP_PASSWORD` | Yes | SMTP password or app password. Keep this secret. |
 | `SMTP_FROM` | Yes | Sender address used for digest email. |
+| `SMTP_USE_TLS` | No | Whether to use STARTTLS for regular SMTP. Use `false` with SSL port 465. |
+| `SMTP_USE_SSL` | No | Whether to connect with SMTP-over-SSL, commonly `true` for port 465. |
 | `MAIL_TO` | Yes | Recipient address or comma-separated recipient list. |
 | `DIGEST_TIMEZONE` | Yes | IANA timezone for scheduling and date labels. |
 | `LOG_LEVEL` | No | Logging level, for example `INFO` or `DEBUG`. |
