@@ -1,6 +1,6 @@
 # Xiaohongshu Trend Digest
 
-Daily Xiaohongshu trend digest service for collecting topic-level note signals through provider interfaces, scoring trends, rendering a digest, and sending it by email.
+Daily Xiaohongshu trend digest service for collecting topic-level AI note signals through provider interfaces, ranking the hottest posts, rendering a digest, and sending it by email.
 
 ## Setup
 
@@ -37,8 +37,8 @@ Then edit `.env`, `settings.yaml`, and `tags.yaml` for the target environment. D
 | `XHS_API_TOKEN` | Yes | Provider API token. Keep this secret. |
 | `XHS_API_BASE_URL` | Yes | Provider API base URL. |
 | `OPENAI_API_KEY` | Yes, when AI summarization is enabled | OpenAI-compatible API key for digest synthesis. |
-| `OPENAI_BASE_URL` | No | Optional OpenAI-compatible base URL override. |
-| `OPENAI_MODEL` | Yes, when AI summarization is enabled | Model name used for digest synthesis. |
+| `OPENAI_BASE_URL` | No | Optional OpenAI-compatible base URL override. Use `https://api.deepseek.com` for DeepSeek. |
+| `OPENAI_MODEL` | Yes, when AI summarization is enabled | Model name used for digest synthesis, for example `deepseek-chat`. |
 | `SMTP_HOST` | Yes | SMTP server hostname. |
 | `SMTP_PORT` | Yes | SMTP server port, commonly `587`. |
 | `SMTP_USER` | Yes | SMTP username. |
@@ -50,6 +50,8 @@ Then edit `.env`, `settings.yaml`, and `tags.yaml` for the target environment. D
 
 Runtime behavior belongs in `settings.yaml`; topic and tag selection belongs in `tags.yaml`.
 
+The email always includes a `今日AI最热帖子` section. It is generated from all collected AI notes and sorted by the deterministic heat score. The default broad AI collection tag is `AI最热帖子`, and `digest.hot_posts_count` controls how many ranked posts are shown.
+
 ## Commands
 
 Run tests:
@@ -58,10 +60,40 @@ Run tests:
 pytest
 ```
 
-Run the public CLI once application modules are available:
+Show the public CLI:
 
 ```powershell
 daily-digest --help
+```
+
+Initialize database tables:
+
+```powershell
+daily-digest init-db
+```
+
+Generate today's digest without sending email:
+
+```powershell
+daily-digest run --date today --dry-run
+```
+
+Generate and send today's digest:
+
+```powershell
+daily-digest run --date today
+```
+
+Send a test email:
+
+```powershell
+daily-digest test-email
+```
+
+Run the built-in daily scheduler:
+
+```powershell
+daily-digest schedule
 ```
 
 Build the container:
@@ -84,7 +116,7 @@ docker compose down
 
 ## Docker
 
-The `Dockerfile` installs the package and runs the public `daily-digest` entrypoint. The Compose stack includes:
+The `Dockerfile` installs the package and runs `daily-digest schedule` by default. The Compose stack includes:
 
 - `app`: digest service container
 - `postgres`: local PostgreSQL database

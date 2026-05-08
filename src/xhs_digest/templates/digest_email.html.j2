@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ subject }}</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f6f7f9;color:#1f2933;font-family:Arial,Helvetica,sans-serif;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f6f7f9;padding:24px 0;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="680" cellspacing="0" cellpadding="0" style="width:680px;max-width:94%;background:#ffffff;border:1px solid #e5e7eb;">
+            <tr>
+              <td style="padding:28px 32px 18px 32px;border-bottom:1px solid #e5e7eb;">
+                <div style="font-size:13px;color:#667085;">{{ digest_date }}</div>
+                <h1 style="margin:6px 0 0 0;font-size:24px;line-height:1.25;color:#111827;">{{ subject }}</h1>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px 32px;">
+                {% if summary %}
+                  <p style="margin:0 0 20px 0;font-size:15px;line-height:1.65;color:#344054;">{{ summary }}</p>
+                {% endif %}
+                {% if hot_notes %}
+                  <section style="margin:0 0 30px 0;">
+                    <h2 style="margin:0 0 10px 0;font-size:19px;line-height:1.35;color:#111827;">今日AI最热帖子</h2>
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+                      {% for note in hot_notes %}
+                        <tr>
+                          <td width="34" valign="top" style="padding:12px 10px 12px 0;border-top:1px solid #eef0f3;font-size:16px;font-weight:bold;color:#155eef;">{{ loop.index }}</td>
+                          <td style="padding:12px 0;border-top:1px solid #eef0f3;">
+                            <div style="font-size:14px;line-height:1.45;color:#111827;font-weight:bold;">
+                              {% if note.url %}
+                                <a href="{{ note.url }}" style="color:#155eef;text-decoration:none;">{{ note.title or "Untitled note" }}</a>
+                              {% else %}
+                                {{ note.title or "Untitled note" }}
+                              {% endif %}
+                            </div>
+                            {% if note.description or note.content %}
+                              <div style="margin-top:4px;font-size:13px;line-height:1.55;color:#475467;">{{ (note.description or note.content) | truncate(170) }}</div>
+                            {% endif %}
+                            <div style="margin-top:5px;font-size:12px;color:#667085;">
+                              {{ note.tag_name or "AI" }}{% if note.keyword %} · {{ note.keyword }}{% endif %}
+                              {% if note.score is defined %} · 热度 {{ "%.2f"|format(note.score|float) }}{% endif %}
+                            </div>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                    </table>
+                  </section>
+                {% endif %}
+                {% if topics %}
+                  {% for topic in topics %}
+                    <section style="margin:0 0 28px 0;">
+                      <h2 style="margin:0 0 8px 0;font-size:18px;line-height:1.35;color:#111827;">{{ loop.index }}. {{ topic.topic }}</h2>
+                      {% if topic.summary %}
+                        <p style="margin:0 0 12px 0;font-size:14px;line-height:1.65;color:#344054;">{{ topic.summary }}</p>
+                      {% endif %}
+                      {% if topic.keywords %}
+                        <p style="margin:0 0 12px 0;font-size:12px;line-height:1.5;color:#667085;">Keywords: {{ topic.keywords | join(", ") }}</p>
+                      {% endif %}
+                      {% if topic.notes %}
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+                          {% for note in topic.notes %}
+                            <tr>
+                              <td style="padding:12px 0;border-top:1px solid #eef0f3;">
+                                <div style="font-size:14px;line-height:1.45;color:#111827;font-weight:bold;">
+                                  {% if note.url %}
+                                    <a href="{{ note.url }}" style="color:#155eef;text-decoration:none;">{{ note.title or "Untitled note" }}</a>
+                                  {% else %}
+                                    {{ note.title or "Untitled note" }}
+                                  {% endif %}
+                                </div>
+                                {% if note.content or note.desc or note.description %}
+                                  <div style="margin-top:4px;font-size:13px;line-height:1.55;color:#475467;">{{ (note.content or note.desc or note.description) | truncate(180) }}</div>
+                                {% endif %}
+                                {% if note.score is defined %}
+                                  <div style="margin-top:5px;font-size:12px;color:#667085;">Score: {{ "%.2f"|format(note.score|float) }}</div>
+                                {% endif %}
+                              </td>
+                            </tr>
+                          {% endfor %}
+                        </table>
+                      {% endif %}
+                    </section>
+                  {% endfor %}
+                {% else %}
+                  <p style="margin:0;font-size:14px;line-height:1.6;color:#475467;">No digest topics were found for this run.</p>
+                {% endif %}
+              </td>
+            </tr>
+            {% if metadata %}
+              <tr>
+                <td style="padding:16px 32px;border-top:1px solid #e5e7eb;font-size:12px;color:#667085;">
+                  {% for key, value in metadata.items() %}
+                    <span>{{ key }}: {{ value }}</span>{% if not loop.last %}<span> | </span>{% endif %}
+                  {% endfor %}
+                </td>
+              </tr>
+            {% endif %}
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

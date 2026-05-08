@@ -47,3 +47,27 @@ def test_renderer_returns_text_for_empty_digest():
 
     assert isinstance(output, str)
     assert "Empty digest" in output
+
+
+def test_email_renderer_includes_hot_ai_posts_section():
+    renderer = pytest.importorskip("xhs_digest.renderer")
+
+    output = renderer.render_digest_email(
+        subject="AI hot posts",
+        digest_date="2026-05-08",
+        summary="Today summary",
+        hot_notes=[
+            {
+                "title": "DeepSeek workflow goes viral",
+                "url": "https://example.com/note/hot",
+                "description": "A practical AI workflow post.",
+                "tag_name": "AI最热帖子",
+                "keyword": "DeepSeek",
+                "score": 88.8,
+            }
+        ],
+        topics=[],
+    )
+
+    assert "今日AI最热帖子" in output
+    assert "DeepSeek workflow goes viral" in output

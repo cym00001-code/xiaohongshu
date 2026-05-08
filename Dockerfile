@@ -13,4 +13,4 @@ COPY settings.yaml tags.yaml ./
 
 RUN python -m pip install .
 
-CMD ["daily-digest"]
+CMD ["daily-digest", "schedule"]

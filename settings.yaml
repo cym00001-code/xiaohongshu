@@ -1,0 +1,17 @@
+schedule:
+  hour: 8
+  minute: 30
+  timezone: Asia/Shanghai
+
+digest:
+  default_notes_per_tag: 30
+  comments_per_note: 20
+  top_notes_for_comments: 5
+  top_topics_per_tag: 5
+  hot_posts_count: 10
+  subject_template: "小红书 AI 风向雷达日报 - {date}"
+  send_failure_notice: true
+
+provider:
+  timeout_seconds: 20
+  max_retries: 2

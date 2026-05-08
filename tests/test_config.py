@@ -16,6 +16,7 @@ def test_settings_yaml_exposes_runtime_sections():
     assert 0 <= settings["schedule"]["minute"] <= 59
     assert settings["schedule"]["timezone"]
     assert settings["digest"]["default_notes_per_tag"] > 0
+    assert settings["digest"]["hot_posts_count"] > 0
     assert settings["provider"]["timeout_seconds"] > 0
 
 
@@ -24,6 +25,7 @@ def test_tags_yaml_contains_reviewable_topic_configuration():
 
     assert isinstance(tags_config["tags"], list)
     assert tags_config["tags"]
+    assert any(tag["name"] == "AI最热帖子" for tag in tags_config["tags"])
     for tag in tags_config["tags"]:
         assert tag["name"]
         assert isinstance(tag["keywords"], list)

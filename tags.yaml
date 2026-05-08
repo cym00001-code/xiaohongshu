@@ -1,0 +1,80 @@
+tags:
+  - name: AI最热帖子
+    keywords:
+      - AI
+      - 人工智能
+      - AIGC
+      - DeepSeek
+      - ChatGPT
+      - Claude
+      - Gemini
+      - AI工具
+    synonyms:
+      - 大模型
+      - 生成式AI
+      - 智能体
+    exclude_keywords: []
+    daily_limit: 50
+    min_heat: 0
+  - name: AI上新
+    keywords:
+      - AI 发布
+      - 新模型
+      - 新功能
+      - 版本更新
+      - Agent
+      - 图片生成
+      - 视频生成
+    synonyms:
+      - 上线
+      - 内测
+      - 公测
+      - 发布会
+    exclude_keywords: []
+    daily_limit: 30
+    min_heat: 0
+  - name: AI工具口碑
+    keywords:
+      - AI 好用
+      - AI 不好用
+      - 避雷
+      - 推荐
+      - 替代
+      - 对比
+    synonyms:
+      - 测评
+      - 体验
+      - 吐槽
+      - 平替
+    exclude_keywords: []
+    daily_limit: 30
+    min_heat: 0
+  - name: AI办公效率
+    keywords:
+      - AI 写作
+      - AI PPT
+      - AI 表格
+      - AI 编程
+      - AI 自动化
+    synonyms:
+      - 工作流
+      - 效率工具
+      - 办公神器
+    exclude_keywords: []
+    daily_limit: 30
+    min_heat: 0
+  - name: AI商业机会
+    keywords:
+      - 副业
+      - 获客
+      - 内容生产
+      - 营销
+      - 创业
+      - 降本增效
+    synonyms:
+      - 变现
+      - 私域
+      - 商业模式
+    exclude_keywords: []
+    daily_limit: 30
+    min_heat: 0

@@ -34,17 +34,19 @@ class JustOneClient:
     def __init__(
         self,
         *,
-        api_key: str,
-        base_url: str = "https://api.just-one.cn",
+        api_key: str | None = None,
+        api_token: str | None = None,
+        base_url: str = "https://api.justoneapi.com",
+        timeout_seconds: float | None = None,
         timeout: float | httpx.Timeout = 15.0,
         max_retries: int = 2,
         client: httpx.Client | None = None,
     ) -> None:
-        self.api_key = api_key
+        self.api_key = api_key or api_token or ""
         self.base_url = base_url.rstrip("/")
         self.max_retries = max(0, max_retries)
         self._owns_client = client is None
-        self._client = client or httpx.Client(base_url=self.base_url, timeout=timeout)
+        self._client = client or httpx.Client(base_url=self.base_url, timeout=timeout_seconds or timeout)
 
     def close(self) -> None:
         if self._owns_client:
@@ -217,8 +219,8 @@ def _map_note(item: Mapping[str, Any], *, provider: str, fallback_note_id: str |
         published_at=_parse_datetime(_pick(item, "published_at", "publishTime", "publish_time", "created_at", "time")),
         liked_count=_to_int(_pick(metrics, "liked_count", "likedCount", "likes", "like_count", "likeCount") or _pick(item, "liked_count", "likedCount")),
         collected_count=_to_int(_pick(metrics, "collected_count", "collectedCount", "collects", "collect_count", "collectCount") or _pick(item, "collected_count", "collectedCount")),
-        commented_count=_to_int(_pick(metrics, "commented_count", "commentedCount", "comments", "comment_count", "commentCount") or _pick(item, "commented_count", "commentedCount")),
-        shared_count=_to_int(_pick(metrics, "shared_count", "sharedCount", "shares", "share_count", "shareCount") or _pick(item, "shared_count", "sharedCount")),
+        commented_count=_to_int(_pick(metrics, "commented_count", "commentedCount", "comments", "comment_count", "commentCount") or _pick(item, "commented_count", "commentedCount", "comment_count", "commentCount", "comments")),
+        shared_count=_to_int(_pick(metrics, "shared_count", "sharedCount", "shares", "share_count", "shareCount") or _pick(item, "shared_count", "sharedCount", "share_count", "shareCount", "shares")),
         tags=_map_tags(item),
         raw=raw,
     )
@@ -297,3 +299,31 @@ def _to_float(value: Any) -> float | None:
         return float(value)
     except (TypeError, ValueError):
         return None
+
+
+def normalize_search_response(payload: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Normalize a Just One search payload into simple public note dictionaries."""
+
+    items = _pick_list(payload, "notes", "items", "list", "data")
+    notes = [_map_note(item, provider="justone") for item in items if isinstance(item, Mapping)]
+    return [
+        {
+            "id": note.note_id,
+            "note_id": note.note_id,
+            "title": note.title,
+            "description": note.description,
+            "url": note.url,
+            "author_name": note.author_name,
+            "liked_count": note.liked_count,
+            "collected_count": note.collected_count,
+            "commented_count": note.commented_count,
+            "shared_count": note.shared_count,
+            "published_at": note.published_at.isoformat() if note.published_at else None,
+        }
+        for note in notes
+    ]
+
+
+parse_search_response = normalize_search_response
+map_search_response = normalize_search_response
+JustOneProvider = JustOneClient
